@@ -10,6 +10,12 @@ input:active {background:red;}
 img{opacity: .5;}
 div#ctn,div.imgmask{background:#fff}
 input,span,div{font-family:verdana;font-size:11px;}
+input[type="text"]{width:240px;}
+input[type="button"]{width:18px;}
+div.wavecab{width:400px;display:inline;border-left: solid black 1px;}
+table.waveform{}
+table#tbl1{border-top: solid black 1px;}
+table#tbl9{border-bottom: solid black 1px;}
 </style>
 <script>
 window.requestAnimFrame = function(callback){
@@ -46,9 +52,8 @@ function load_txt(i) {
 		var timer = buzz.toTimer(this.getTime());
 		tijdupdate(i, timer);
 		var time = this.getTime();
-		var duration = this.getDuration();
-		var percent = buzz.toPercent(time, duration, 2);
-		var pw = Math.floor((60 * duration));
+		var percent = buzz.toPercent(time, this.getDuration(), 2);
+		var pw = Math.floor((60 * this.getDuration()));
 		var px = Math.floor((pw * percent) / 100);
 		img.style.background = "url('" + src + "')";
 		img.style.backgroundSize = '100% 100%';
@@ -57,6 +62,8 @@ function load_txt(i) {
 		imgmask.style.left = px + 'px';
 		imgmask.style.width = (pw - px) + 'px';
 	});
+	$("#play" + i).css({display:'none'});
+	$("#pause" + i).css({display:'inline'});
 	if (buzzs[parseInt(i)-1] != undefined)
 		buzzs[parseInt(i)-1].stop();
 	buzzs[parseInt(i)-1] = buz;
@@ -147,7 +154,10 @@ function click_play(i) {
 	if (b == null) {
 		load_txt(i);
 	} else 
-		b.toggleMute();
+		b.unmute();
+	$("#play" + i).css({display:'none'});
+	$("#pause" + i).css({display:'inline'});
+	$("#img" + i).css({opacity:1.0});
 }
 function tijdupdate(i, tijd) {
 	$("#dis" + i).html(tijd);
@@ -169,22 +179,23 @@ function click_faster(i) {
 	b.setSpeed(b.getSpeed() + .1);
 }
 function click_pause(i) {
-	var b = buzzs[parseInt(i) - 1];
-	b.toggleMute();
-	// b.pause();
+	$("#pause" + i).css({display:'none'});
+	$("#play" + i).css({display:'inline'});
+	$("#img" + i).css({opacity:.5});
+	buzzs[parseInt(i) - 1].mute();
 }
 $(document).ready(function() {
 var ctn = $("#ctn");
 for (var i=1;i<=9;i++) {
 	var txt = example[Math.floor(Math.random() * example.length)];
-	ctn.append('<div id="c'+i+'" style="position:relative;">&nbsp;<input type="button" id="play'+i+'" name="' + i + '" onclick="this.style.display=&apos;none&apos;;this.parentNode.childNodes[2].style.display=&apos;inline&apos;;click_play(this.name);return false" value="M" />' + 
-				'<input type="button" id="pause'+i+'" style="background:red;color:white;border:none;display:none;" onclick="this.style.display=&apos;none&apos;;this.parentNode.childNodes[1].style.display=&apos;inline&apos;;click_pause(  '+i+');return false;" value="M" />' + 
+	ctn.append('<div id="c'+i+'" style="position:relative;">&nbsp;<input type="button" style="display:none;" id="play'+i+'" name="' + i + '" onclick="click_play(this.name);return false" value="P" />' + 
+				'<input type="button" id="pause'+i+'" style="color:white;border:none;" onclick="click_pause(  '+i+');return false;" value="M" />' + 
 				'<input title="slower" type="button" onclick="click_slower( '+i+');return false" value="[" />' +
 				'<input title="faster" type="button" onclick="click_faster( '+i+');return false" value="]" />' +
 				'<input title="zachter" type="button" onclick="click_voldown('+i+');return false" value="-" />' +
 				'<input title="harder" type="button" onclick="click_volup(  '+i+');return false" value="+" />' +
 				'<input id="txt' + i + '" type="text" name="' + i + '" value="' + txt + '"/><input id="load' + i + '" title="load" type="button" name="' + i + '" onclick="load_txt('+i+');return false" value="tts" /><span id="dis' + i + '" style="width:8em;">00:00</span>'+
-'<table id="tbl'+i+'" style="position:relative;left:0px;display:inline;"><tr><td id="img'+i+'" style="width:400px;height:12px;text-align:right"><div id="pos'+i+'" style="position:relative;width:0px;height:0px;">&nbsp;</div><div id="imgmask'+i+'" style="align:right;width: 0px;left:400px;background:#fff;position:relative;z-index:4;opacity:.7;">&nbsp;</div></td></tr></table><br />');
+'<div class="wavecab"><table class="waveform" id="tbl'+i+'" style="position:relative;left:0px;display:inline;"><tr><td id="img'+i+'" style="width:400px;height:12px;text-align:right"><div id="pos'+i+'" style="position:relative;width:0px;height:0px;">&nbsp;</div><div id="imgmask'+i+'" style="align:right;width: 0px;left:400px;background:#fff;position:relative;z-index:4;opacity:.8;">&nbsp;</div></td></tr></table></div><br />');
 		$("#tbl" + i).bind('drag',function(event){
 			var x = event.offsetX - 300;
 			if (x >= 0 && x < 300) $(this).css({left:x})
@@ -209,7 +220,12 @@ for (var i=1;i<=9;i++) {
 	load_txt('7');
 	load_txt('8');
 	load_txt('9');
-	measure();
+	window.setTimeout(function(){
+		for (var u=0;u<=5;u++) {
+			click_pause(1+Math.floor(Math.random()*8));
+		}
+		measure();
+	}, 2000);
 });
 </script>
 </head>
