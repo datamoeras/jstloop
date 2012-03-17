@@ -14,6 +14,12 @@ input[type="text"]{width:240px;}
 input[type="button"]{width:18px;}
 div.wavecab{width:400px;display:inline;border-left: solid black 1px;}
 table.waveform{}
+div.playing input{color:green}
+/*
+div.playing input.btnplay {display:none}
+input.btnpause {display:none}
+div.playing input.btnpause {display:inline}
+*/
 </style>
 <script>
 window.requestAnimFrame = function(callback){
@@ -45,6 +51,7 @@ function load_txt(i) {
 	buz.bind("ended", function(e) {
 		imgmask.style.width = imgmask.style.left;
 		imgmask.style.left = '0px';
+		$("#c"+i).removeClass("playing");
 	});
 	buz.bind("timeupdate", function(e) {
 		var timer = buzz.toTimer(this.getTime());
@@ -59,6 +66,7 @@ function load_txt(i) {
 		imgmask.style.display = '';
 		imgmask.style.left = px + 'px';
 		imgmask.style.width = (pw - px) + 'px';
+		$("#c"+i).addClass("playing");
 	});
 	$("#play" + i).css({display:'none'});
 	$("#pause" + i).css({display:'inline'});
@@ -112,7 +120,6 @@ function init_queue() {
 		if (buzzs[key] == null) return;
 		queue.push(key);
 		i++;
-		// $("#ctn").append("tel " + key + " " + pxoffsets[key] + "=" + value + "<br />");
 	});
 	var lx = (new Date()).getTime() - lms;
 	$("#dbg").html('reset @' + lx + 'ms<br />');
@@ -130,11 +137,6 @@ function measure() {
 			window.requestAnimFrame(measure);
 			return;
 		}
-		/*
-		if (lms > 0) {
-			$("#dbg").append("reset @" + lt + "ms<br />");
-		}
-		*/
 		init_queue();
 		lms = (new Date()).getTime();
 	}
@@ -155,8 +157,10 @@ function click_play(i) {
 	var b = buzzs[parseInt(i) - 1];
 	if (b == null) {
 		load_txt(i);
-	} else 
+	} else {
 		b.unmute();
+	}
+	$("#c" + i).addClass("playing");
 	$("#play" + i).css({display:'none'});
 	$("#pause" + i).css({display:'inline'});
 	$("#img" + i).css({opacity:1.0});
@@ -190,8 +194,8 @@ $(document).ready(function() {
 
 for (var i=1;i<=9;i++) {
 	var txt = example[Math.floor(Math.random() * example.length)];
-	$("#ctn").append('<div id="c'+i+'" style="position:relative;">&nbsp;<input type="button" style="display:none;" id="play'+i+'" name="' + i + '" onclick="click_play(this.name);return false" value="P" />' + 
-				'<input type="button" id="pause'+i+'" style="color:red;border:none;" onclick="click_pause(  '+i+');return false;" value="M" />' + 
+	$("#ctn").append('<div id="c'+i+'" style="position:relative;">&nbsp;<input type="button" class="btnplay" style="display:none;" id="play'+i+'" name="' + i + '" onclick="click_play(this.name);return false" value="P" />' + 
+				'<input type="button" class="btnpause" id="pause'+i+'" style="color:red;border:none;" onclick="click_pause(  '+i+');return false;" value="M" />' + 
 				'<input title="slower" type="button" onclick="click_slower( '+i+');return false" value="[" />' +
 				'<input title="faster" type="button" onclick="click_faster( '+i+');return false" value="]" />' +
 				'<input title="zachter" type="button" onclick="click_voldown('+i+');return false" value="-" />' +
@@ -221,7 +225,7 @@ for (var i=1;i<=9;i++) {
 			click_pause(1+Math.floor(Math.random()*8));
 		}
 		measure();
-	}, 2000);
+	}, 800);
 });
 </script>
 </head>
