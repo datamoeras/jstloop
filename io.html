@@ -1,0 +1,237 @@
+<html>
+<head>
+<script src="http://i.doscii.nl/git/jts/jquery-1.7.1.min.js"></script>
+<script src="http://threedubmedia.googlecode.com/files/jquery.event.drag-1.5.min.js"></script>
+<script src="http://i.doscii.nl/git/jts/buzz.js"></script><!-- http://buzz.jaysalvat.com/ -->
+<script src="http://i.doscii.nl/git/jts/example.js"></script><!-- some sample input text -->
+<style>
+input{border:none;padding: 1px;margin: 1px;} 
+input:active {background:red;}
+img{opacity: .5;}
+div#ctn,div.imgmask{background:#fff}
+input,span,div{font-family:verdana;font-size:11px;}
+</style>
+<script>
+window.requestAnimFrame = function(callback){
+    return (
+        window.requestAnimationFrame       || 
+        window.webkitRequestAnimationFrame || 
+        window.mozRequestAnimationFrame    || 
+        window.oRequestAnimationFrame      || 
+        window.msRequestAnimationFrame     || 
+        function(/* function */ callback){
+            window.setTimeout(callback, 1000 / 60);
+        }
+    );
+}();
+
+var buzzs = [ ];
+buzz.defaults.autoplay = false;
+buzz.defaults.loop = false;
+function load_txt(i) {
+	var input = $("#txt" + i);
+	var url = "http://i.doscii.nl/b/" + input.val();
+	var buz = new buzz.sound(url);
+	var img = document.getElementById("img" + i);
+	var imgmask = document.getElementById("imgmask" + i);
+	var pos = document.getElementById("pos" + i);
+	var src = url + '.png';
+	src = src.replace(/\/b/, '/git/jts/wv');
+	tijdupdate(i, '00:00');
+	buz.bind("ended", function(e) {
+		imgmask.style.width = imgmask.style.left;
+		imgmask.style.left = '0px';
+	});
+	buz.bind("timeupdate", function(e) {
+		var timer = buzz.toTimer(this.getTime());
+		tijdupdate(i, timer);
+		var time = this.getTime();
+		var duration = this.getDuration();
+		var percent = buzz.toPercent(time, duration, 2);
+		var pw = Math.floor((60 * duration));
+		var px = Math.floor((pw * percent) / 100);
+		img.style.background = "url('" + src + "')";
+		img.style.backgroundSize = '100% 100%';
+		img.style.width = pw + 'px';
+		imgmask.style.display = '';
+		imgmask.style.left = px + 'px';
+		imgmask.style.width = (pw - px) + 'px';
+	});
+	if (buzzs[parseInt(i)-1] != undefined)
+		buzzs[parseInt(i)-1].stop();
+	buzzs[parseInt(i)-1] = buz;
+}
+function total_playing() {
+	var n = 0;
+	for (var i in buzzs) {
+		var buz = buzzs[i];
+		if (! buz.isEnded() && ! buz.isPaused()) {
+			n++;
+		}
+	}
+	return n;
+}
+function bySortedValue(obj, callback, context) {
+    var tuples = [];
+
+    for (var key in obj) tuples.push([key, obj[key]]);
+
+    tuples.sort(function(a, b) { return a[1] < b[1] ? 1 : a[1] > b[1] ? -1 : 0 });
+
+    var length = tuples.length;
+    while (length--) callback.call(context, tuples[length][0], tuples[length][1]);
+}
+
+
+var queue = [];
+var qi = 0;
+var pxoffsets = [];
+var lms = 0;
+function init_queue() {
+	queue = [];
+	qi = 0;
+	var of = {};
+	pxoffsets = [];
+	for (var i in buzzs) {
+		var ni = parseInt(i)+1;
+		var t = document.getElementById("tbl"+ni);
+		if (t == null) continue;
+		var left = t.style.left;
+		pxoffsets[i]=0;
+		if (left != null) {
+			pxoffsets[i] = parseInt(left.replace(/px$/,''));
+		}
+	}
+	var i=0;
+	bySortedValue(pxoffsets, function(key, value) {
+		if (buzzs[key] == null) return;
+		queue.push(key);
+		i++;
+		// $("#ctn").append("tel " + key + " " + pxoffsets[key] + "=" + value + "<br />");
+	});
+	var lx = (new Date()).getTime() - lms;
+	$("#dbg").html('reset @' + lx + 'ms<br />');
+}
+var fms = 600;
+function measure() {
+	var stil = true;
+	// $("#ctn").append("MEASURE Q=[" + queue.length + "]");
+	if (queue.length == 0) {
+		if (total_playing() > 0) {
+			window.requestAnimFrame(measure);
+			return;
+		}
+		/*
+		if (lms > 0) {
+			$("#dbg").append("reset @" + lt + "ms<br />");
+		}
+		*/
+		init_queue();
+		lms = (new Date()).getTime();
+	}
+	while (queue.length > 0) { x=0;
+		var i = queue[x];
+		var of = pxoffsets[i] * 20;
+		var lt = (new Date()).getTime() - lms;
+		if (of <= lt) {
+			$("#dbg").append("play #" + i + " @" + lt + "ms<br />");
+			buzzs[i].play();
+			queue.splice(x, 1);
+		} else break;
+	}
+	window.requestAnimFrame(measure);
+}
+
+function click_play(i) {
+	var b = buzzs[parseInt(i) - 1];
+	if (b == null) {
+		load_txt(i);
+	} else 
+		b.toggleMute();
+}
+function tijdupdate(i, tijd) {
+	$("#dis" + i).html(tijd);
+}
+function click_slower(i) {
+	var b = buzzs[parseInt(i) - 1];
+	b.setSpeed(b.getSpeed() - .1);
+}
+function click_voldown(i) {
+	var b = buzzs[parseInt(i) - 1];
+	b.decreaseVolume(10);
+}
+function click_volup(i) {
+	var b = buzzs[parseInt(i) - 1];
+	b.increaseVolume(10);
+}
+function click_faster(i) {
+	var b = buzzs[parseInt(i) - 1];
+	b.setSpeed(b.getSpeed() + .1);
+}
+function click_pause(i) {
+	var b = buzzs[parseInt(i) - 1];
+	b.toggleMute();
+	// b.pause();
+}
+$(document).ready(function() {
+var ctn = $("#ctn");
+for (var i=1;i<=9;i++) {
+	var txt = example[Math.floor(Math.random() * example.length)];
+	ctn.append('<div id="c'+i+'" style="position:relative;">&nbsp;<input type="button" id="play'+i+'" name="' + i + '" onclick="this.style.display=&apos;none&apos;;this.parentNode.childNodes[2].style.display=&apos;inline&apos;;click_play(this.name);return false" value="M" />' + 
+				'<input type="button" id="pause'+i+'" style="background:red;color:white;border:none;display:none;" onclick="this.style.display=&apos;none&apos;;this.parentNode.childNodes[1].style.display=&apos;inline&apos;;click_pause(  '+i+');return false;" value="M" />' + 
+				'<input title="slower" type="button" onclick="click_slower( '+i+');return false" value="[" />' +
+				'<input title="faster" type="button" onclick="click_faster( '+i+');return false" value="]" />' +
+				'<input title="zachter" type="button" onclick="click_voldown('+i+');return false" value="-" />' +
+				'<input title="harder" type="button" onclick="click_volup(  '+i+');return false" value="+" />' +
+				'<input id="txt' + i + '" type="text" name="' + i + '" value="' + txt + '"/><input id="load' + i + '" title="load" type="button" name="' + i + '" onclick="load_txt('+i+');return false" value="tts" /><span id="dis' + i + '" style="width:8em;">00:00</span>'+
+'<table id="tbl'+i+'" style="position:relative;left:0px;display:inline;"><tr><td id="img'+i+'" style="width:400px;height:12px;text-align:right"><div id="pos'+i+'" style="position:relative;width:0px;height:0px;">&nbsp;</div><div id="imgmask'+i+'" style="align:right;width: 0px;left:400px;background:#fff;position:relative;z-index:4;opacity:.7;">&nbsp;</div></td></tr></table><br />');
+		$("#tbl" + i).bind('drag',function(event){
+			var x = event.offsetX - 300;
+			if (x >= 0 && x < 300) $(this).css({left:x})
+		});
+		$("#dis" + i).bind('dragstart',function(event){ event.originalEvent.dataTransfer.setData("DownloadURL", "http://doscii.nl/dm/thebrain/thebrain111.ogg")});
+		$("#load" + i).bind('dragenter',function(event){ event.stopPropagation(); event.preventDefault(); });
+		$("#load" + i).bind('dragexit',function(event){ event.stopPropagation(); event.preventDefault(); });
+		$("#load" + i).bind('dragover',function(event){ event.stopPropagation(); event.preventDefault(); });
+		$("#load" + i).bind('drop',function(event){ event=event.originalEvent;
+			event.stopPropagation(); event.preventDefault();
+			var files = event.dataTransfer.files;
+			var count = files.length;
+			alert("input " + count + " files");
+		});
+	}
+	load_txt('1');
+	load_txt('2');
+	load_txt('3');
+	load_txt('4');
+	load_txt('5');
+	load_txt('6');
+	load_txt('7');
+	load_txt('8');
+	load_txt('9');
+	measure();
+});
+</script>
+</head>
+<body>
+<div style="border: solid #ddd 1px;font-family:fixed;font-size:10px;margin: 5px;" id="doc" onclick="$(this).fadeOut()">
+<a target="_blank" href="https://github.com/datamoeras/jstloop">github.com/datamoeras/jstloop</a><br />
+you should hear a lot of noise.<br />
+click M to mute a few tracks.<br />
+drag a waveform to the right.<br />
+known bug: sometimes the loop won't restart (reload page)<br />
+</div>
+<div id="ctn"></div>
+<div id="dbg" onclick="$(this).fadeOut()"></div>
+<script type="text/javascript">
+  var _gaq = _gaq || [];
+  _gaq.push(['_setAccount', 'UA-29478248-1']);
+  _gaq.push(['_trackPageview']);
+  (function() {
+    var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+    ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+  })();
+</script>
+</body>
+</html>
