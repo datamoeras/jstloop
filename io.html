@@ -119,10 +119,14 @@ function init_queue() {
 	var lx = (new Date()).getTime() - lms;
 	$("#dbg").html('reset @' + lx + 'ms<br />');
 }
-var fms = 600;
+var mi=0;
 function measure() {
-	var stil = true;
-	// $("#ctn").append("MEASURE Q=[" + queue.length + "]");
+	mi++;
+	var lx = (new Date()).getTime() - lms;
+	$("#sts_time").html(lx);
+	$("#sts_foo").html(mi);
+	$("#sts_q").html(queue.length);
+	$("#sts_p").html(total_playing());
 	if (queue.length == 0) {
 		if (total_playing() > 0) {
 			window.requestAnimFrame(measure);
@@ -185,11 +189,11 @@ function click_pause(i) {
 	buzzs[parseInt(i) - 1].mute();
 }
 $(document).ready(function() {
-var ctn = $("#ctn");
+
 for (var i=1;i<=9;i++) {
 	var txt = example[Math.floor(Math.random() * example.length)];
-	ctn.append('<div id="c'+i+'" style="position:relative;">&nbsp;<input type="button" style="display:none;" id="play'+i+'" name="' + i + '" onclick="click_play(this.name);return false" value="P" />' + 
-				'<input type="button" id="pause'+i+'" style="color:white;border:none;" onclick="click_pause(  '+i+');return false;" value="M" />' + 
+	$("#ctn").append('<div id="c'+i+'" style="position:relative;">&nbsp;<input type="button" style="display:none;" id="play'+i+'" name="' + i + '" onclick="click_play(this.name);return false" value="P" />' + 
+				'<input type="button" id="pause'+i+'" style="color:red;border:none;" onclick="click_pause(  '+i+');return false;" value="M" />' + 
 				'<input title="slower" type="button" onclick="click_slower( '+i+');return false" value="[" />' +
 				'<input title="faster" type="button" onclick="click_faster( '+i+');return false" value="]" />' +
 				'<input title="zachter" type="button" onclick="click_voldown('+i+');return false" value="-" />' +
@@ -211,15 +215,7 @@ for (var i=1;i<=9;i++) {
 			alert("input " + count + " files");
 		});
 	}
-	load_txt('1');
-	load_txt('2');
-	load_txt('3');
-	load_txt('4');
-	load_txt('5');
-	load_txt('6');
-	load_txt('7');
-	load_txt('8');
-	load_txt('9');
+	for (var u=1;u<=9;u++) load_txt(u);
 	window.setTimeout(function(){
 		for (var u=0;u<=5;u++) {
 			click_pause(1+Math.floor(Math.random()*8));
@@ -236,6 +232,13 @@ you should hear a lot of noise.<br />
 click M to mute a few tracks.<br />
 drag a waveform to the right.<br />
 known bug: sometimes the loop won't restart (reload page)<br />
+click here to hide this text<br/>
+</div>
+<div id="sts">
+lm:<span id="sts_time"></span> - 
+tm:<span id="sts_foo"></span> -
+q:<span id="sts_q"></span> -
+p:<span id="sts_p"></span>
 </div>
 <div id="ctn"></div>
 <div id="dbg" onclick="$(this).fadeOut()"></div>
