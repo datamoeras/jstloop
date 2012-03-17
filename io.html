@@ -14,8 +14,6 @@ input[type="text"]{width:240px;}
 input[type="button"]{width:18px;}
 div.wavecab{width:400px;display:inline;border-left: solid black 1px;}
 table.waveform{}
-table#tbl1{border-top: solid black 1px;}
-table#tbl9{border-bottom: solid black 1px;}
 </style>
 <script>
 window.requestAnimFrame = function(callback){
@@ -201,8 +199,8 @@ for (var i=1;i<=9;i++) {
 				'<input id="txt' + i + '" type="text" name="' + i + '" value="' + txt + '"/><input id="load' + i + '" title="load" type="button" name="' + i + '" onclick="load_txt('+i+');return false" value="tts" /><span id="dis' + i + '" style="width:8em;">00:00</span>'+
 '<div class="wavecab"><table class="waveform" id="tbl'+i+'" style="position:relative;left:0px;display:inline;"><tr><td id="img'+i+'" style="width:400px;height:12px;text-align:right"><div id="pos'+i+'" style="position:relative;width:0px;height:0px;">&nbsp;</div><div id="imgmask'+i+'" style="align:right;width: 0px;left:400px;background:#fff;position:relative;z-index:4;opacity:.8;">&nbsp;</div></td></tr></table></div><br />');
 		$("#tbl" + i).bind('drag',function(event){
-			var x = event.offsetX - 300;
-			if (x >= 0 && x < 300) $(this).css({left:x})
+			var x = event.offsetX - 400;
+			if (x >= 0 && x < 400) $(this).css({left:x})
 		});
 		$("#dis" + i).bind('dragstart',function(event){ event.originalEvent.dataTransfer.setData("DownloadURL", "http://doscii.nl/dm/thebrain/thebrain111.ogg")});
 		$("#load" + i).bind('dragenter',function(event){ event.stopPropagation(); event.preventDefault(); });
@@ -216,6 +214,8 @@ for (var i=1;i<=9;i++) {
 		});
 	}
 	for (var u=1;u<=9;u++) load_txt(u);
+	for (var u=2;u<=7;u++) $("#tbl"+u).css({left:Math.floor(Math.random()*300)});
+	for (var u=0;u<=8;u++) buzzs[u].decreaseVolume(Math.floor(Math.random()*30));
 	window.setTimeout(function(){
 		for (var u=0;u<=5;u++) {
 			click_pause(1+Math.floor(Math.random()*8));
@@ -241,6 +241,21 @@ q:<span id="sts_q"></span> -
 p:<span id="sts_p"></span>
 </div>
 <div id="ctn"></div>
+<div id="tml" style="
+	position:relative;
+	left: 400px;
+	width: 400px;
+	height: 1px;
+	border-top: solid black 1px;
+">
+</div>
+<div id="tmlr" style="
+	position:relative;
+	left: 800px;
+	width: 40px;
+	height:16px;
+	border: solid black 1px;
+">(scale)</div>
 <div id="dbg" onclick="$(this).fadeOut()"></div>
 <script type="text/javascript">
   var _gaq = _gaq || [];
