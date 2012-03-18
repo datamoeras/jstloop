@@ -94,7 +94,65 @@ function bySortedValue(obj, callback, context) {
     var length = tuples.length;
     while (length--) callback.call(context, tuples[length][0], tuples[length][1]);
 }
-
+function update_savelink() {
+	var data = save();
+	$("#savelink").attr('href', document.location.hash = '#' + data);
+}
+function save() {
+	var data = '';
+	for (var i=0;i<=8;i++) {
+		var o = i+1;
+		var buz = buzzs[i];
+		if (buz == null) { data += ";"; continue }
+		var txt = $("#txt"+o).val();
+		// var speed = buz.GetSpeed();
+		var vol = buz.getVolume();
+		var off = $("#tbl" + o).css('left');
+		if (off != null) off = off.replace(/px$/, '');
+		var muted=0;
+		if (buz.isMuted()) muted=1;
+		data += "txt=" + txt + "|speed=" + '1' + "|vol=" + vol + "|off=" + off + "|muted="+muted;
+		data += ';';
+	}
+	return data;
+}
+function load_hash() {
+	var hash = document.location.hash.replace(/^#/, '');
+	lload(hash);
+}
+function lload(data) {
+	$("#dbg2").html("LOAD " + data + "<br />");
+	var input = data.split(';');
+	input.pop();
+	for (var i in input) {
+		var dat = input[i].split('|');
+		var obj = {};
+		for (var u in dat) {
+			var sp = dat[u].split('=');
+			obj[sp[0]]=sp[1];
+		}
+		load_obj(i, obj);
+	}
+	queue = [];
+	measure();
+}
+function load_obj(i, obj) {
+	var o = parseInt(i)+1;
+	$("#dbg2").append("txt="+obj.txt+";offset=" + obj.off + "<br />");
+	$("#txt" + o).val(obj.txt);
+	$("#tbl" + o).css({left:obj.off});
+	load_txt(i);
+	if (obj.muted == 1) click_pause(i);
+	if (buzzs[i] != null) {
+		// buzzs[i].;
+	}
+/*
+	buzzs[i].play();
+	buzzs[i].mute();
+	buzzs[i].setVolume(obj.vol);
+	buzzs[i].setSpeed(obj.speed);
+*/
+}
 
 var queue = [];
 var qi = 0;
@@ -128,12 +186,13 @@ var mi=0;
 function measure() {
 	mi++;
 	var lx = (new Date()).getTime() - lms;
+	update_savelink();
 	$("#sts_time").html(lx);
 	$("#sts_foo").html(mi);
 	$("#sts_q").html(queue.length);
 	$("#sts_p").html(total_playing());
 	if (queue.length == 0) {
-		if (total_playing() > 0) {
+		if (total_playing() > 0 && ( lx < 20000 || lx > 1000000)) {
 			window.requestAnimFrame(measure);
 			return;
 		}
@@ -192,42 +251,48 @@ function click_pause(i) {
 }
 $(document).ready(function() {
 
-for (var i=1;i<=9;i++) {
-	var txt = example[Math.floor(Math.random() * example.length)];
-	$("#ctn").append('<div id="c'+i+'" style="position:relative;">&nbsp;<input type="button" class="btnplay" style="display:none;" id="play'+i+'" name="' + i + '" onclick="click_play(this.name);return false" value="P" />' + 
-				'<input type="button" class="btnpause" id="pause'+i+'" style="color:red;border:none;" onclick="click_pause(  '+i+');return false;" value="M" />' + 
-				'<input title="slower" type="button" onclick="click_slower( '+i+');return false" value="[" />' +
-				'<input title="faster" type="button" onclick="click_faster( '+i+');return false" value="]" />' +
-				'<input title="zachter" type="button" onclick="click_voldown('+i+');return false" value="-" />' +
-				'<input title="harder" type="button" onclick="click_volup(  '+i+');return false" value="+" />' +
-				'<input id="txt' + i + '" type="text" name="' + i + '" value="' + txt + '"/><input id="load' + i + '" title="load" type="button" name="' + i + '" onclick="load_txt('+i+');return false" value="tts" /><span id="dis' + i + '" style="width:8em;">00:00</span>'+
-'<div class="wavecab"><table class="waveform" id="tbl'+i+'" style="position:relative;left:0px;display:inline;"><tr><td id="img'+i+'" style="width:400px;height:12px;text-align:right"><div id="pos'+i+'" style="position:relative;width:0px;height:0px;">&nbsp;</div><div id="imgmask'+i+'" style="align:right;width: 0px;left:400px;background:#fff;position:relative;z-index:4;opacity:.8;">&nbsp;</div></td></tr></table></div><br />');
-		$("#tbl" + i).bind('drag',function(event){
-			var x = event.offsetX - 400;
-			if (x >= 0 && x < 400) $(this).css({left:x})
-		});
-		$("#dis" + i).bind('dragstart',function(event){ event.originalEvent.dataTransfer.setData("DownloadURL", "http://doscii.nl/dm/thebrain/thebrain111.ogg")});
-		$("#load" + i).bind('dragenter',function(event){ event.stopPropagation(); event.preventDefault(); });
-		$("#load" + i).bind('dragexit',function(event){ event.stopPropagation(); event.preventDefault(); });
-		$("#load" + i).bind('dragover',function(event){ event.stopPropagation(); event.preventDefault(); });
-		$("#load" + i).bind('drop',function(event){ event=event.originalEvent;
-			event.stopPropagation(); event.preventDefault();
-			var files = event.dataTransfer.files;
-			var count = files.length;
-			alert("input " + count + " files");
-		});
+	for (var i=1;i<=9;i++) {
+		var txt = example[Math.floor(Math.random() * example.length)];
+		$("#ctn").append('<div id="c'+i+'" style="position:relative;">&nbsp;<input type="button" class="btnplay" style="display:none;" id="play'+i+'" name="' + i + '" onclick="click_play(this.name);return false" value="P" />' + 
+					'<input type="button" class="btnpause" id="pause'+i+'" style="color:red;border:none;" onclick="click_pause(  '+i+');return false;" value="M" />' + 
+					'<input title="slower" type="button" onclick="click_slower( '+i+');return false" value="[" />' +
+					'<input title="faster" type="button" onclick="click_faster( '+i+');return false" value="]" />' +
+					'<input title="zachter" type="button" onclick="click_voldown('+i+');return false" value="-" />' +
+					'<input title="harder" type="button" onclick="click_volup(  '+i+');return false" value="+" />' +
+					'<input id="txt' + i + '" type="text" name="' + i + '" value="' + txt + '"/><input id="load' + i + '" title="load" type="button" name="' + i + '" onclick="load_txt('+i+');return false" value="tts" /><span id="dis' + i + '" style="width:8em;">00:00</span>'+
+	'<div class="wavecab"><table class="waveform" id="tbl'+i+'" style="position:relative;left:0px;display:inline;"><tr><td id="img'+i+'" style="width:400px;height:12px;text-align:right"><div id="pos'+i+'" style="position:relative;width:0px;height:0px;">&nbsp;</div><div id="imgmask'+i+'" style="align:right;width: 0px;left:400px;background:#fff;position:relative;z-index:4;opacity:.8;">&nbsp;</div></td></tr></table></div><br />');
+			$("#tbl" + i).bind('drag',function(event){
+				var x = event.offsetX - 400;
+				if (x >= 0 && x < 400) $(this).css({left:x})
+			});
+			$("#dis" + i).bind('dragstart',function(event){ event.originalEvent.dataTransfer.setData("DownloadURL", "http://doscii.nl/dm/thebrain/thebrain111.ogg")});
+			$("#load" + i).bind('dragenter',function(event){ event.stopPropagation(); event.preventDefault(); });
+			$("#load" + i).bind('dragexit',function(event){ event.stopPropagation(); event.preventDefault(); });
+			$("#load" + i).bind('dragover',function(event){ event.stopPropagation(); event.preventDefault(); });
+			$("#load" + i).bind('drop',function(event){ event=event.originalEvent;
+				event.stopPropagation(); event.preventDefault();
+				var files = event.dataTransfer.files;
+				var count = files.length;
+				alert("input " + count + " files");
+			});
 	}
-	for (var u=1;u<=9;u++) load_txt(u);
-	for (var u=2;u<=7;u++) $("#tbl"+u).css({left:Math.floor(Math.random()*300)});
-	for (var u=0;u<=8;u++) buzzs[u].decreaseVolume(Math.floor(Math.random()*60));
-	window.setTimeout(function(){
-		for (var u=0;u<=5;u++) {
-			click_pause(1+Math.floor(Math.random()*8));
-		}
-		measure();
-	}, 800);
+	if (document.location.hash) {
+		load_hash();
+	} else {
+		for (var u=1;u<=9;u++) load_txt(u);
+		for (var u=2;u<=7;u++) $("#tbl"+u).css({left:Math.floor(Math.random()*300)});
+		for (var u=0;u<=8;u++) buzzs[u].decreaseVolume(Math.floor(Math.random()*60));
+		window.setTimeout(function(){
+			for (var u=0;u<=5;u++) {
+				click_pause(1+Math.floor(Math.random()*8));
+			}
+			measure();
+		}, 800);
+	}
+/*
 	$("#dbg").delay(5000).fadeOut();
 	$("#doc").delay(10000).fadeOut();
+*/
 });
 </script>
 </head>
@@ -237,7 +302,6 @@ for (var i=1;i<=9;i++) {
 you should hear a lot of noise.<br />
 click M to mute a few tracks.<br />
 drag a waveform to the right.<br />
-known bug: sometimes the loop won't restart (p&gt;0; reload page)<br />
 click here to hide this text<br/>
 </div>
 <div id="sts">
@@ -261,7 +325,14 @@ playing:<span id="sts_p"></span>
 	width: 40px;
 	height:16px;
 ">6.66s</div>
+<div id="control">
+	<input type="button" onclick="load_hash();return false" value="load" />
+	<!--<input type="button" onclick="click_save();return false" value="save" />-->
+	<a href="#" id="savelink">SAVE HREF</a><br />
+	<a href="io.html" id="savelink">reset</a>
+</div>
 <div id="dbg" onclick="$(this).fadeOut()"></div>
+<div id="dbg2" style="display:none;">DEBUG2<br /></div>
 <script type="text/javascript">
   var _gaq = _gaq || [];
   _gaq.push(['_setAccount', 'UA-29478248-1']);
