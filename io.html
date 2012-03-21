@@ -40,13 +40,13 @@ buzz.defaults.autoplay = false;
 buzz.defaults.loop = false;
 function load_txt(i) {
 	var input = $("#txt" + i);
-	var url = "http://i.doscii.nl/b/" + input.val();
+	var url = "/b/" + input.val();
 	var buz = new buzz.sound(url);
 	var img = document.getElementById("img" + i);
 	var imgmask = document.getElementById("imgmask" + i);
 	var pos = document.getElementById("pos" + i);
 	var src = url + '.png';
-	src = src.replace(/\/b/, '/git/jts/wv');
+	src = src.replace(/\/b/, '/git/jts/wav');
 	tijdupdate(i, '00:00');
 	buz.bind("ended", function(e) {
 		imgmask.style.width = imgmask.style.left;

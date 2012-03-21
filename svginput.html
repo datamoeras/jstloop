@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<!-- saved from url=(0032)http://raphaeljs.com/ichart.html -->
+<html lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+        <meta charset="utf-8">
+        <title>Raphaël · Interactive Chart</title>
+    </head>
+    <body>
+        <script src="raphael.js"></script>
+        <script src="svginput.js"></script>
+        <script>
+			var db = [10, 20, 30, 40, 10, 30, 40, 30, 20, 10];
+			window.onload = function() { svg_input('holder', db, function(d) { document.getElementById('dbg').innerHTML += 'callback zegt nu: ' + d + '<br />'; } ) };
+        </script>
+        <div id="holder"></div>
+        <div id="dbg" style="font-size: 9px;"></div>
+		<a href="#" onclick="svg_input('holder', db, function(d) { document.getElementById('dbg').innerHTML += 'callback zegt nu: ' + d + '<br />';})" />NEW</a>
+        <p id="copy">Demo of <a href="http://raphaeljs.com/">Raphaël</a>—JavaScript Vector Library</p>
+</body></html>
