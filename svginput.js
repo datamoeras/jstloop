@@ -32,7 +32,14 @@ function svg_input(holder, database, callback) {
 		path.attr({path: p});
 		sub.attr({path: p + subaddon});
 	}
-	
+	function exit_svg() {
+		callback(database);
+		var hold = document.getElementById(holder);
+		while (hold.firstChild) {
+			hold.removeChild(hold.firstChild);
+		}
+	}
+
 	var p = [["M"].concat(translate(0, values[0]))],
 		color = "hsb(1°, 1, 1)",
 		X = [],
@@ -42,24 +49,25 @@ function svg_input(holder, database, callback) {
 		w = (W - 60) / values.length,
 		isDrag = -1,
 		start = null,
-		sub = r.path().attr({stroke: "none", fill: [90, 90, color].join("-"), opacity: 0}),
+		sub = r.path().attr({stroke: "none", fill: [90, 90, color].join("-"), opacity: 0}).dblclick(exit_svg),
 		path = r.path().attr({stroke: color, "stroke-width": 2}),
-
-
 		unhighlight = function () {};
 
-var text = document.createElementNS("http://www.w3.org/2000/svg", "text");
-text.setAttribute('x','100');
-text.setAttribute('y','100');
-			text.setAttribute('style', 'stroke:#ffffff');
-var textpath = document.createElementNS("http://www.w3.org/2000/svg", "textPath");
-document.getElementsByTagName("path")[1].id="kut";
-textpath.setAttribute("xlink:href", "#" + path.id);
-text.appendChild(textpath);
-textpath.textContent = "foo bar baz";
-// var data = document.getElementsByTagName("svg")[0].createTextNode("Hallo is robis hier");
-// textpath.appendChild(data);
-document.getElementsByTagName("path")[1].parentNode.appendChild(text);
+	/* this is not working yet */
+	var text = document.createElementNS("http://www.w3.org/2000/svg", "text");
+	text.setAttribute('x','100');
+	text.setAttribute('y','100');
+	text.setAttribute('style', 'stroke:#ffffff');
+	var textpath = document.createElementNS("http://www.w3.org/2000/svg", "textPath");
+	document.getElementsByTagName("path")[1].id="kut";
+	textpath.setAttribute("xlink:href", "#" + path.id);
+	text.appendChild(textpath);
+	textpath.textContent = "foo bar baz";
+	// var data = document.getElementsByTagName("svg")[0].createTextNode("Hallo is robis hier");
+	// textpath.appendChild(data);
+	document.getElementsByTagName("path")[1].parentNode.appendChild(text);
+	/* as you can see */
+
 	var ii;
 	for (i = 0, ii = values.length - 1; i < ii; i++) {
 		var xy = translate(i, values[i]),
@@ -86,16 +94,10 @@ document.getElementsByTagName("path")[1].parentNode.appendChild(text);
 				}
 			}).drag(function (dx, dy) {
 				this.start && update(this.start.i, this.start.p + dy);
-				// document.getElementById("dbg").innerHTML += "drop " + this.start.i + " @ y=" + this.start.p + " + " + dy + "<br />";
 			}, function (x, y) {
 				this.start = {i: i, m: y, p: Y[i]};
-			}).dblclick(function(){
-				callback(database);
-				var hold = document.getElementById(holder);
-				while (hold.firstChild) {
-					hold.removeChild(hold.firstChild);
-				}
-			}));
+			}).dblclick(exit_svg)
+			);
 			blankets.items[blankets.items.length - 1].node.style.cursor = "move";
 		})(i, xy);
 		if (i == ii - 1) {
@@ -118,7 +120,6 @@ document.getElementsByTagName("path")[1].parentNode.appendChild(text);
 		r.safari();
 		var ny = Math.floor(((d - 10 )/ ( H - 20 )) * 100);
 		database[i] = 100 - ny;
-		// document.getElementById("dbg").innerHTML = d + " --&gt; " + ny + "<br />" + document.getElementById("dbg").innerHTML;
 	};
 };
 
