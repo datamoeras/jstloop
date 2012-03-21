@@ -46,12 +46,16 @@ function svg_input(holder, database, callback) {
 		Y = [],
 		blankets = r.set(),
 		buttons = r.set(),
+		grid_y = 8,
 		w = (W - 60) / values.length,
 		isDrag = -1,
 		start = null,
-		sub = r.path().attr({stroke: "none", fill: [90, 90, color].join("-"), opacity: 0}).dblclick(exit_svg),
+		sub = r.path().attr({stroke: "none", 'fill-opacity': .4, fill: [90, 90, color].join("-"), opacity: .4}).dblclick(exit_svg),
 		path = r.path().attr({stroke: color, "stroke-width": 2}),
 		unhighlight = function () {};
+
+	for (var y = 0; y< H; y+= grid_y)
+		r.path("m 0 " + y + " l " + W + " 0").attr({stroke: "black", "stroke-width": (y/grid_y)%12==3?2:1, 'stroke-opacity': 0.5});
 
 	/* this is not working yet */
 	var text = document.createElementNS("http://www.w3.org/2000/svg", "text");
@@ -93,7 +97,7 @@ function svg_input(holder, database, callback) {
 					buttons.items[i].animate({r: 5}, 200);
 				}
 			}).drag(function (dx, dy) {
-				this.start && update(this.start.i, this.start.p + dy);
+				this.start && update(this.start.i, Raphael.snapTo(grid_y, this.start.p + dy, grid_y/2));
 			}, function (x, y) {
 				this.start = {i: i, m: y, p: Y[i]};
 			}).dblclick(exit_svg)
